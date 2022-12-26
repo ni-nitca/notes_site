@@ -1,4 +1,7 @@
 def check_reg_password(data:dict):
+    if not check_register_data(data):
+        return False
+
     password1 = data.get('password1')
     password2 = data.get('password2')
     if password1 == password2:
@@ -19,4 +22,5 @@ def check_register_data(data: dict):
     for value in true_list:
         if value not in values:
             return False
-        return True
+    return True
+    
