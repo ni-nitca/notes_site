@@ -8,13 +8,13 @@ def check_reg_password(data:dict):
         return True
     return False
 
+
 def check_register_data(data: dict):
     if not isinstance(data, dict):
         return False
 
     values = data.keys()
     true_list = [
-        "username",
         "email",
         "password1",
         "password2",
@@ -23,4 +23,20 @@ def check_register_data(data: dict):
         if value not in values:
             return False
     return True
+
+
+def check_authorize_data(data:dict):
+    if not isinstance(data, dict):
+        return False
     
+    values = data.keys()
+    true_list = [
+        "email",
+        "password",
+    ]
+    for value in true_list:
+        if value not in values:
+            return False
+    return True
+
+#нужна проверка пароля
