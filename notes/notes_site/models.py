@@ -1,27 +1,18 @@
 from django.db import models
 from solo.models import SingletonModel
 from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import AbstractUser
 from notes_site.managers import UserManager
 from taggit.managers import TaggableManager
 from uuid import uuid4
 
 
-class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField('email address', unique=True)
-    first_name = models.CharField('first name', max_length=30, blank=True)
-    last_name = models.CharField('last name', max_length=30, blank=True)
-    date_joined = models.DateTimeField('date joined', auto_now_add=True)
-    is_active = models.BooleanField('active', default=False)
-    is_staff = models.BooleanField(default=False)
+class User(AbstractUser, PermissionsMixin):
+
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    class Meta:
-        verbose_name = 'user'
-        verbose_name_plural = 'users'
 
     def get_full_name(self):
         full_name = '%s %s' % (self.first_name, self.last_name)
@@ -29,6 +20,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.first_name
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        verbose_name = 'user'
+        verbose_name_plural = 'users'
 
     def __str__(self):
         return self.email
@@ -93,7 +91,7 @@ class Registration(SingletonModel):
     )
     class Meta:
         db_table = "Registration"
-        verbose_name = "Ркгистрация"
+        verbose_name = "Регистрация"
         verbose_name_plural = "Регистрации"
 
 
@@ -105,3 +103,22 @@ class Authorize(SingletonModel):
         db_table = "Authorize"
         verbose_name = "Авторизация"
         verbose_name_plural = "Авторизации"
+
+
+class MailSettings(SingletonModel):
+    domen = models.CharField(
+        max_length = 64,
+        verbose_name = "Домен",
+    )
+    title = models.CharField(
+        max_length = 128,
+        verbose_name = "Заголовок",
+    )
+    description = models.TextField(
+        verbose_name = "Описание"
+    )
+    class Meta:
+        db_table = "mail_setinngs"
+        verbose_name = "Настройки почты"
+        verbose_name_plural = "Настройки почт"
+
