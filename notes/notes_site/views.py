@@ -1,45 +1,62 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
-from notes_site.service import register_save,activation
+from django.contrib.auth import login
+from notes_site.service import (
+    register_save,
+    activation,
+    authorization,
+    )
 from django.core.mail import EmailMessage 
 from notes_site.models import User
+from django.views.generic import (
+    ListView,
+)
 
 
 
+class Autorize(ListView):
+    def get(self,request):#context?
+        template_name = ""
+        return render(request,template_name)
 
-
-def autorize(request):
-    template_name = ""
-    if request.method == 'POST':
+    def post(self,request):
         data = request.POST
-        username = data['username']
-        password = data['password']
-        user = authenticate(username,password)
-        if user is not None:
-            if user.is_active:
-                return login(request,user)
-            else:
-                return HttpResponse('Аккаунт не активирован')
+        auth = authorization(data)
+        if auth.get('status_code')==400:
+            return HttpResponse(auth.get('text'))
         else:
-            return HttpResponse('Неверный логин или пароль')
-    else:
-        return render (request,template_name)
+            login(request,auth)
 
-def register(request):
-    user = User()
-    template_name = 'notes_site/signup.html'
-    if request.method == "POST":
-        data = request.POST
-        register_save(data,request)
-    else:
+
+class Register(ListView):
+    def get(self,request):
+        template_name = 'notes_site/signup.html'
         return render(request, template_name)
+
+    def post(self,request):
+        template_name = ''
+        if request.method == "POST":
+            data = request.POST
+            save = register_save(data)
+            status_code = save.get('status_code')
+            text = save.get('text')
+            if status_code == 400:
+                return render(request,template_name,text)
+            else:
+                return render(request,template_name,text)        
          
 
-def activations(request):
-    template_name = "notes_site/acc_activate_email.html" 
-    activation(request)
-    return render(request,template_name)
+class Activate(ListView):
+    def get(self,request):
+        template_name = ''
+        hash = request.GET.get('hash')
+        answer = activation(hash)
+        status_code = answer.get("status_code")
+        text = answer.get("text")
+        if status_code == 400:
+            return HttpResponse(text)
+        else:
+            return render(request,template_name)
 
 
 
