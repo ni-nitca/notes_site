@@ -4,82 +4,105 @@ from notes_site.models import (
     User,
     Authorize,
     Registration,
+    MailSettings,
 )
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
 from notes_site.check import (
     check_reg_password,
     check_register_data,
-
+    check_authorize_data,
 )
 
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage 
-from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth.hashers import make_password
 
 
 
-def register_save(data,request):
+def authorization(data):
+    if not check_authorize_data(data):
+        answer = {
+            "status_code":400,
+            "text": "Неверные данные"
+            }
+        return answer
+
+    username = data['email']
+    password = data['password']
+    user = authenticate(username,password)
+    if user.is_active:
+        return user
+    else:
+        answer = {
+        "status_code":400,
+        "text": "Аккаунт не активирован"
+        }
+        return answer 
+
+
+def register_save(data):
     user = User()
     if not check_register_data(data):
         answer = {
-            "code":400,
+            "status_code":400,
             "text": "Неверно передан словарь"
         }
         return answer
     if not check_reg_password(data):
         answer = {
-            "code":200,
-            "text":"Пароль не равны между собой"
+            "status_code":400,
+            "text":"Пароли не равны между собой"
         }
         return answer
-    user.first_name = data.get('first_name')
-    user.last_name = data.get('last_name')
-    user.email = data.get('email')
-    user.password = data.get('password1')
 
-    EmailHash.objects.create(user=user)
+    user.email = data.get('email')
+    user.password = make_password(data.get('password1'))
     user.save()
-    hash = EmailHash.objects.filter(user=user)
-    email_send(data,request,user,hash)
+    EmailHash.objects.create(user=user)
+
+    hash = EmailHash.objects.filter(user_id=user)
+    email_send(data,hash)
     answer = {
-        "answer":200,
+        "status_code":200,
         "text":"Все прошло успешно"
     }
     return answer
 
 
-def email_send(data,request,user,hash):
-    current_site = get_current_site(request) 
+def email_send(data,hash):#Как оптравить заголовок и текст
+    current_site = '127.0.0.1'
+    template_name = "notes_site/acc_active_email.html"
     mail_subject = 'Ссылка активации отправлена на вашу электронную почту'
-    message = render_to_string('acc_active_email.html', { 
-                'user': user, 
-                'domain': current_site.domain, 
-                'url': hash
-            })
+    message = render_to_string(template_name, {
+        'domain':current_site, 
+        'token': hash,
+    })
     to_email = data.get('email')
     email = EmailMessage(
-            mail_subject,
-            message,
-            to=to_email
-        )
-    email.send
+        mail_subject,
+        message,
+        to=[to_email]
+    )
+    email.send()
     return 'Пожалуйста проверьте вашу почту для завершения регистрации'
 
-def activation(request):
-    user = User()
-    hash = EmailHash.objects.filter(user=user)
+
+def activation(hash):
+    user_hash = EmailHash.objects.get(hash_text= hash) 
+    user_id = user_hash.user_id
+    user = User.objects.get(pk=user_id)
     if user is not None and hash is not None:
         user.is_active = True
         user.save()
         answer = {
-            "code":200,
+            "status_code":200,
             "text":"Вы успешно активировали ваш аккаунт"
         }
         return answer
     else:
         answer = {
-            "code":404,
+            "status_code":404,
             "text":"Некорректаная ссылка"
         }
         return answer
@@ -90,3 +113,7 @@ def get_notes(request):
     notes = Note.objects.filter(user_id = user)
     data = {"notes":notes}
     return data
+
+def search_notes(request):
+    data = request.POST
+    user = request.user
