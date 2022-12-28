@@ -59,9 +59,9 @@ def register_save(data):
     user.email = data.get('email')
     user.password = make_password(data.get('password1'))
     user.save()
-    EmailHash.objects.create(user=user)
+    hash_obj = EmailHash.objects.create(user=user)
+    hash = hash_obj.hash_text
 
-    hash = EmailHash.objects.filter(user_id=user)
     email_send(data,hash)
     answer = {
         "status_code":200,
@@ -70,12 +70,15 @@ def register_save(data):
     return answer
 
 
-def email_send(data,hash):#Как оптравить заголовок и текст
-    current_site = '127.0.0.1'
+def email_send(data,hash):
+    mail_obj = MailSettings.objects.get_or_create(pk=1)
+    mail_set = mail_obj[0]
+    current_site = mail_set.domen
+    mail_subject = mail_set.description
+
     template_name = "notes_site/acc_active_email.html"
-    mail_subject = 'Ссылка активации отправлена на вашу электронную почту'
     message = render_to_string(template_name, {
-        'domain':current_site, 
+        'domain': current_site, 
         'token': hash,
     })
     to_email = data.get('email')
@@ -110,6 +113,7 @@ def activation(hash):
 
 def get_notes(request):
     user = request.user
+    user_id = User.objects.filter(email=user)
     notes = Note.objects.filter(user_id = user)
     data = {"notes":notes}
     return data
@@ -117,3 +121,18 @@ def get_notes(request):
 def search_notes(request):
     data = request.POST
     user = request.user
+    tags = data.get('tags')
+    notes = get_notes(request)
+
+
+def edit_notes(data,request):
+    user = request.user
+    note = Note()
+    note.user = user
+    note.title = data.get('title')
+    note.description = data.get('descriptions')
+    
+
+
+
+    
