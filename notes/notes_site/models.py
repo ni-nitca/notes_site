@@ -13,14 +13,6 @@ class User(AbstractUser, PermissionsMixin):
 
     REQUIRED_FIELDS = []
 
-
-    def get_full_name(self):
-        full_name = '%s %s' % (self.first_name, self.last_name)
-        return full_name.strip()
-
-    def get_short_name(self):
-        return self.first_name
-
     def __str__(self):
         return self.email
 
@@ -28,8 +20,6 @@ class User(AbstractUser, PermissionsMixin):
         verbose_name = 'user'
         verbose_name_plural = 'users'
 
-    def __str__(self):
-        return self.email
 
 
 class Note(models.Model):
