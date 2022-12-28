@@ -35,15 +35,14 @@ class Register(ListView):
 
     def post(self,request):
         template_name = ''
-        if request.method == "POST":
-            data = request.POST
-            save = register_save(data)
-            status_code = save.get('status_code')
-            text = save.get('text')
-            if status_code == 400:
-                return render(request,template_name,text)
-            else:
-                return render(request,template_name,text)        
+        data = request.POST
+        save = register_save(data)
+        status_code = save.get('status_code')
+        text = save.get('text')
+        if status_code == 400:
+            return render(request,template_name,text)
+        else:
+            return render(request,template_name,text)        
          
 
 class Activate(ListView):
