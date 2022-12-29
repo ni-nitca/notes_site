@@ -5,6 +5,7 @@ from notes_site.models import (
     Authorize,
     Registration,
     MailSettings,
+    Tags,
 )
 from django.http import HttpResponse
 from django.contrib.auth import authenticate
@@ -12,8 +13,9 @@ from notes_site.check import (
     check_reg_password,
     check_register_data,
     check_authorize_data,
+    check_notes,
 )
-
+from slugify import slugify
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage 
 from django.contrib.auth.hashers import make_password
@@ -30,19 +32,30 @@ def authorization(data):
 
     username = data['email']
     password = data['password']
-    user = authenticate(username,password)
-    if user.is_active:
-        return user
-    else:
+
+    email = User.objects.filter(email=username)
+    if not email:
         answer = {
-        "status_code":400,
-        "text": "Аккаунт не активирован"
+            "status_code":401,
+            "text":"Неверный логин или пароль"
         }
-        return answer 
+        return answer
+
+    user = authenticate(username,password)
+    if not user.is_active:
+        answer = {
+            "status_code":402,
+            "text": "Аккаунт не активирован"
+        }
+        return answer
+    return answer == {"status_code":200}
 
 
 def register_save(data):
     user = User()
+    email = data.get('email')
+    password = data.get('password1')
+    email_in_db = User.objects.filter(email=email)
     if not check_register_data(data):
         answer = {
             "status_code":400,
@@ -51,13 +64,19 @@ def register_save(data):
         return answer
     if not check_reg_password(data):
         answer = {
-            "status_code":400,
+            "status_code":401,
             "text":"Пароли не равны между собой"
         }
         return answer
-
-    user.email = data.get('email')
-    user.password = make_password(data.get('password1'))
+    if email_in_db:
+        answer = {
+            "status_code":402,
+            "text":"Ваша почта уже используется"
+        }
+        return answer
+    
+    user.email = email
+    user.password = make_password(password)
     user.save()
     hash_obj = EmailHash.objects.create(user=user)
     hash = hash_obj.hash_text
@@ -93,8 +112,7 @@ def email_send(data,hash):
 
 def activation(hash):
     user_hash = EmailHash.objects.get(hash_text= hash) 
-    user_id = user_hash.user_id
-    user = User.objects.get(pk=user_id)
+    user = user_hash.user
     if user is not None and hash is not None:
         user.is_active = True
         user.save()
@@ -109,28 +127,54 @@ def activation(hash):
             "text":"Некорректаная ссылка"
         }
         return answer
-        
 
 def get_notes(request):
     user = request.user
-    user_id = User.objects.filter(email=user)
-    notes = Note.objects.filter(user_id = user)
-    data = {"notes":notes}
-    return data
-
-def search_notes(request):
-    data = request.POST
-    user = request.user
-    tags = data.get('tags')
-    notes = get_notes(request)
-
+    data = request.data
+    note = Note.objects.filter(user_id = user)
+    if not data:
+        answer = {"notes":notes}
+        return answer
+    else:
+        value = data.get("tags")
+        tags_list = value.split(',')
+        notes = []
+        for tags in tags_list:
+            tag = Tags.objects.filter(tags)
+            
+                
+            
+            
 
 def edit_notes(data,request):
+    if not check_notes(data):
+        answer = {
+            "status_code":400,
+            "text":"передан пустой словарь"
+        }
+        return answer
     user = request.user
     note = Note()
     note.user = user
     note.title = data.get('title')
-    note.description = data.get('descriptions')
+    note.description = data.get('description')
+    note.slug = slugify(data.get('title'))
+    note.save()
+    note = Note.objects.filter(title=data.get('title'))
+    tags = data.get('tag')
+    tags_list = tags.split(',')
+    if tags_list:
+        for tags in tags_list:
+            tag = Tags()
+            tag.note = note
+            tag.tag = tag
+            tag.save()
+    answer ={
+        "status_code":200
+    }
+    return answer
+    
+
     
 
 
