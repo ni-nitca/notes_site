@@ -3,22 +3,26 @@ from solo.models import SingletonModel
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractUser
 from notes_site.managers import UserManager
-from taggit.managers import TaggableManager
 from uuid import uuid4
 
 
 class User(AbstractUser, PermissionsMixin):
+    email = models.EmailField('email address', unique=True)
+    username = None
+    is_active = models.BooleanField('active', default=False)
 
     objects = UserManager()
 
     REQUIRED_FIELDS = []
+    USERNAME_FIELD = 'email'
 
     def __str__(self):
         return self.email
 
     class Meta:
-        verbose_name = 'user'
-        verbose_name_plural = 'users'
+        db_table = "users"
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 
 
@@ -35,13 +39,16 @@ class Note(models.Model):
     description = models.TextField(
         verbose_name="Описание",
     )
+    slug = models.SlugField(
+        max_length=64,
+        unique=True,
+        verbose_name="URL"
+    )
 
     posted_date = models.DateTimeField(
         verbose_name="Дата публикации",
         auto_now_add=True,
     )
-
-    tags = TaggableManager()
 
     def __str__(self):
         return self.title
@@ -112,3 +119,22 @@ class MailSettings(SingletonModel):
         verbose_name = "Настройки почты"
         verbose_name_plural = "Настройки почт"
 
+
+class Tags(models.Model):
+    note = models.ForeignKey(
+        Note,
+        verbose_name="Заметка",
+        on_delete=models.CASCADE,
+    )
+    tag = models.CharField(
+        verbose_name="Тег",
+        max_length=64,
+    )
+
+    def __str__(self):
+        return self.note.title
+
+    class Meta:
+        db_table = "tags"
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
