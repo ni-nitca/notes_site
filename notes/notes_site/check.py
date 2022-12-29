@@ -39,4 +39,17 @@ def check_authorize_data(data:dict):
             return False
     return True
 
-#нужна проверка пароля
+def check_notes(data:dict):
+    if not isinstance(data, dict):
+        return False
+
+    values = data.keys()
+    true_list = [
+        "title",
+        "description",
+    ]
+    for value in true_list:
+        if value not in values:
+            return False
+    return True
+    
