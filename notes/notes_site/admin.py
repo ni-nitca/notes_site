@@ -1,13 +1,19 @@
 from django.contrib import admin
 from solo.admin import SingletonModelAdmin
-from notes_site.models import Note, Authorize, Registration, MailSettings
+from notes_site.models import (
+    Note,
+    Authorize,
+    Registration,
+    MailSettings,
+    Tags
+    )   
 
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
     class Meta:
         model = Note
-        fields = ["title", "description ", "posted_date","tags"]
+        fields = [ "title","description ", "posted_date"]
 
 
 @admin.register(Authorize)
@@ -30,3 +36,8 @@ class MailSettingsAdmin(SingletonModelAdmin):
         model = MailSettings
         fields = ['domen','title','description']
 
+@admin.register(Tags)
+class TagsAdmin(admin.ModelAdmin):
+    class Meta:
+        model = Tags
+        fields = ['note','tag']
