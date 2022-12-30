@@ -59,6 +59,24 @@ class Note(models.Model):
         verbose_name_plural = "Заметки"
 
 
+class Tags(models.Model):
+    note = models.ForeignKey(
+        Note,
+        verbose_name="Заметка",
+        on_delete=models.CASCADE,
+    )
+    tag = models.CharField(
+        verbose_name="Тег",
+        max_length=64,
+    )
+
+    def __str__(self):
+        return self.note.title
+
+    class Meta:
+        db_table = "tags"
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
 
 
 class EmailHash(models.Model):
@@ -119,22 +137,3 @@ class MailSettings(SingletonModel):
         verbose_name = "Настройки почты"
         verbose_name_plural = "Настройки почт"
 
-
-class Tags(models.Model):
-    note = models.ForeignKey(
-        Note,
-        verbose_name="Заметка",
-        on_delete=models.CASCADE,
-    )
-    tag = models.CharField(
-        verbose_name="Тег",
-        max_length=64,
-    )
-
-    def __str__(self):
-        return self.note.title
-
-    class Meta:
-        db_table = "tags"
-        verbose_name = "Тег"
-        verbose_name_plural = "Теги"
