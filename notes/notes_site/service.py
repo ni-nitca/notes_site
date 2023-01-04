@@ -14,6 +14,7 @@ from notes_site.check import (
     check_register_data,
     check_authorize_data,
     check_notes,
+    check_tags
 )
 from slugify import slugify
 from django.template.loader import render_to_string
@@ -135,22 +136,23 @@ def activation(hash):
         }
         return answer
 
-def get_notes(request):
-    user = request.user
-    data = request.data
+
+def get_notes(user,data):
+    user = user
+    data = data
     notes = Note.objects.filter(user_id = user)
-    if not data:
+    if not check_tags(data):
         answer = {"notes":notes}
         return answer
     else:
-        value = data.get("tags")
-        tags_list = value.split(',')
-        note_list = []
-        for tags in tags_list:
-            note = notes.filter(tag__name__in = tags)
-            note_list.append(note)
+        tags = data.get("tags")
+        tags_list = tags.split(',')
+        note = notes.filter(tags__in = tags_list)
+        answer = {"notes":note}
+        return answer
 
-def edit_notes(data,request):#при ред перепеисать теги удалвив их
+
+def edit_notes(data,request):
     if not check_notes(data):
         answer = {
             "status_code":400,
@@ -161,14 +163,20 @@ def edit_notes(data,request):#при ред перепеисать теги уд
     title = data.get('title')
     description = data.get('description')
     slug = slugify(data.get('title'))
-    note = Note.objects.bulk_create(
-        Note(user,title,description,slug)
+    note = Note.objects.create(
+        user,title,description,slug
         )
     tags = data.get('tag')
     tags_list = tags.split(',')
     if tags_list:
-        for tag in tags_list:
-            Tags.objects.bulk_create(note,tag)
+        obj = [
+        Tags(
+            note = note,
+            tags = tag, 
+        )
+        for tag in tags_list
+        ]
+        create_notes = Tags.objects.bulk_create(obj)
     answer ={
         "status_code":200,
         "text": "Все прошло успешно"
