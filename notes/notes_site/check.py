@@ -53,3 +53,15 @@ def check_notes(data:dict):
             return False
     return True
     
+def check_tags(data:dict):
+    if not isinstance (data, dict):
+        return False
+    
+    values = data.keys()
+    true_list = [
+        "tags",
+    ]
+    for value in true_list:
+        if value not in values:
+            return False
+    return True
