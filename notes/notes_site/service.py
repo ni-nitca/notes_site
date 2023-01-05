@@ -42,7 +42,7 @@ def authorization(data):
         }
         return answer
 
-    user = authenticate(username,password)
+    user = authenticate(username, password)
     if not user.is_active:
         answer = {
             "status_code":402,
@@ -89,7 +89,7 @@ def register_save(data):
     hash_obj = EmailHash.objects.create(user=user)
     hash = hash_obj.hash_text
 
-    email_send(data,hash)
+    email_send(data, hash)
     answer = {
         "status_code":200,
         "text":"Все прошло успешно"
@@ -97,7 +97,7 @@ def register_save(data):
     return answer
 
 
-def email_send(data,hash):
+def email_send(data, hash):
     mail_obj = MailSettings.objects.get_or_create(pk=1)
     mail_obj = mail_obj[0]
     current_site = mail_obj.domen
@@ -119,37 +119,36 @@ def email_send(data,hash):
 
 
 def activation(hash):
-    user_hash = EmailHash.objects.filter(hash_text= hash) 
-    user = user_hash.user
-    if user is not None and hash is not None:
-        user.is_active = True
-        user.save()
-        answer = {
-            "status_code":200,
-            "text":"Вы успешно активировали ваш аккаунт"
-        }
-        return answer
-    else:
-        answer = {
-            "status_code":404,
-            "text":"Некорректаная ссылка"
-        }
-        return answer
+    user_hash = EmailHash.objects.filter(hash_text=hash) 
+    if user_hash.exists():
+        user = user_hash.user#exists,потом пользователь
+        if user is not None:
+            user.is_active = True
+            user.save()
+            answer = {
+                "status_code":200,
+                "text":"Вы успешно активировали ваш аккаунт"
+            }
+            return answer
+    answer = {
+        "status_code":404,
+        "text":"Некорректаная ссылка"
+    }
+    return answer
 
 
-def get_notes(user,data):
-    user = user
-    data = data
-    notes = Note.objects.filter(user_id = user)
+def get_notes(request):
+    user = request.user
+    data = request.data
+    notes = Note.objects.filter(user_id=user)
     if not check_tags(data):
         answer = {"notes":notes}
         return answer
-    else:
-        tags = data.get("tags")
-        tags_list = tags.split(',')
-        note = notes.filter(tags__in = tags_list)
-        answer = {"notes":note}
-        return answer
+    tags = data.get("tags")
+    tags_list = tags.split(',')
+    notes = notes.filter(tags__in = tags_list)
+    answer = {"notes":notes}
+    return answer
 
 
 def edit_notes(data,request):
@@ -159,27 +158,41 @@ def edit_notes(data,request):
             "text":"передан пустой словарь"
         }
         return answer
-    user = request.user 
+    user = request.user
     title = data.get('title')
     description = data.get('description')
     slug = slugify(data.get('title'))
-    note = Note.objects.create(
+    note = Note.objects.update_or_create(#разобрать метод
         user,title,description,slug
         )
     tags = data.get('tag')
     tags_list = tags.split(',')
     if tags_list:
-        obj = [
-        Tags(
-            note = note,
-            tags = tag, 
-        )
-        for tag in tags_list
-        ]
-        create_notes = Tags.objects.bulk_create(obj)
+        tags = [Tags(note = note,tags = tag) for tag in tags_list]
+        Tags.objects.bulk_create(tags)
     answer ={
         "status_code":200,
         "text": "Все прошло успешно"
+    }
+    return answer
+
+
+def get_context_auth():
+    authorize = Authorize()
+    description = authorize.description
+    answer = {
+        "status_code":200,
+        "text": description
+    }
+    return answer
+
+
+def get_context_reg():
+    registration = Registration()
+    description = registration.description
+    answer = {
+        "status_code":200,
+        "text": description
     }
     return answer
     
