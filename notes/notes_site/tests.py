@@ -57,8 +57,10 @@ class ServiceTestCase(TestCase):
             description = self.description,
             slug = self.slug
         )
-        answer = {"notes":note}
-        self.assertEqual(answer, get_notes(user,data=[]))
+        answer = {"notes":[note]}
+        answ_1 = get_notes(user,data=[]) 
+        answ_1["notes"] = list(answ_1["notes"])
+        self.assertEqual(answer, answ_1,msg=answ_1)
         tags = self.get_data.get("tags")
         tags_list = tags.split(',')
         obj = [
@@ -68,9 +70,11 @@ class ServiceTestCase(TestCase):
         )
         for tag in tags_list
         ]
-        create_notes = Tags.objects.bulk_create(obj)
+        Tags.objects.bulk_create(obj)
         notes = Note.objects.filter(user_id = user)
         note = notes.filter(tags__in = tags_list)
         answer = {"notes":note}
         self.assertEqual(answer, get_notes(user,self.get_data))
+
+
 
