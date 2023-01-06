@@ -45,6 +45,7 @@ def check_notes(data:dict):
 
     values = data.keys()
     true_list = [
+        "id"
         "title",
         "description",
     ]
