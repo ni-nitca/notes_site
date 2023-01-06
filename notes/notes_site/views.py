@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse,HttpResponseRedirect
 from django.contrib.auth import login
+from notes_site.models import (Note)
 from notes_site.service import (
     register_save,
     activation,
@@ -8,13 +9,14 @@ from notes_site.service import (
     get_context_auth,
     get_context_reg,
     get_notes,
-    edit_notes
+    edit_notes,
+    delete_note
     )
 from django.core.mail import EmailMessage 
 from notes_site.models import User
 from django.views.generic import (
     View,
-    ListView,
+    DetailView
 )
 
 
@@ -22,62 +24,74 @@ from django.views.generic import (
 class IndexView(View):
     def get(self, request):
         template_name = ''
-        context = get_context_auth()
-        return render(request, template_name, context)
-
-    def post(self, request):
-        if request.user.is_authenticated():
-            template_name = ''
-            return HttpResponseRedirect(template_name)
-        if "reg" in request.POST:
-        template_name = ''
-        context = get_context()
-        context['saved'] = saved
+        if request.user.is_authenticated:
+            context = get_notes(request)
+        else:
+            context = get_context_auth()
         return render(request, template_name, context)
 
 
-class Autorize(View):
-    def get(self,request):
-        template_name = ""
-        return render(request,template_name)
-
-    def post(self,request):
-        data = request.POST
-        auth = authorization(data)
-        if auth.get('status_code')==400:
-            return HttpResponse(auth.get('text'))
-        else:
-            login(request,auth)
-
-
-class Register(View):
-    def get(self,request):
-        template_name = 'notes_site/.html'
-        return render(request, template_name)
-
+class AutorizeView(View):
     def post(self,request):
         template_name = ''
-        data = request.POST
-        save = register_save(data)
-        status_code = save.get('status_code')
-        text = save.get('text')
-        if status_code == 400:
-            return render(request,template_name,text)
-        else:
-            return render(request,template_name,text)        
+        auth = authorization(request)
+        return render(
+            request,
+            template_name,
+            context=auth
+            )
+
+
+class RegisterView(View):
+    def post(self,request):
+        template_name = ''
+        save = register_save(request)
+        return render(
+            request,
+            template_name,
+            context=save
+            )
          
 
+class ActivateView(View):
+    def get(request):
+        template_name = ''
+        hash = request.get('hash')
+        answer = activation(hash)
+        return render(
+            request,
+            template_name,
+            context=answer
+            )
 
-def activate(request):
-    template_name = ''
-    hash = request.GET.get('hash')
-    answer = activation(hash)
-    status_code = answer.get("status_code")
-    text = answer.get("text")
-    if status_code == 400:
-        return HttpResponse(text)
-    else:
-        return render(request,template_name)
+
+class NoteCreateView(View):
+    def post(request):
+        template_name = ''
+        create = edit_notes(request)
+        return render(
+            request,
+            template_name,
+            context=create
+            )
+
+
+class NoteDetailView(DetailView):
+    model = Note
+
+
+class NoteDeleteView(View):
+    def post(request):
+        template_name = ''
+        delete = delete_note(request)
+        return render(
+            request,
+            template_name,
+            context=delete
+            )
+
+
+
 
 
 
