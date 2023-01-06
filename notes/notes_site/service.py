@@ -23,7 +23,8 @@ from django.contrib.auth.hashers import make_password
 
 
 
-def authorization(data):
+def authorization(request):#test
+    data = request
     if not check_authorize_data(data):
         answer = {
             "status_code":400,
@@ -41,8 +42,9 @@ def authorization(data):
             "text":"Неверный логин или пароль"
         }
         return answer
-
-    user = authenticate(username, password)
+    print(username)
+    user = authenticate(username)
+    print (user)
     if not user.is_active:
         answer = {
             "status_code":402,
@@ -57,7 +59,8 @@ def authorization(data):
     return answer
 
 
-def register_save(data):
+def register_save(request):
+    data = request.data
     if not check_register_data(data):
         answer = {
             "status_code":400,
@@ -97,7 +100,7 @@ def register_save(data):
     return answer
 
 
-def email_send(data, hash):
+def email_send(data, hash):#test
     mail_obj = MailSettings.objects.get_or_create(pk=1)
     mail_obj = mail_obj[0]
     current_site = mail_obj.domen
@@ -118,10 +121,10 @@ def email_send(data, hash):
     return 'Пожалуйста проверьте вашу почту для завершения регистрации'
 
 
-def activation(hash):
+def activation(hash):#test атрибуты гет урлов
     user_hash = EmailHash.objects.filter(hash_text=hash) 
     if user_hash.exists():
-        user = user_hash.user#exists,потом пользователь
+        user = user_hash.user
         if user is not None:
             user.is_active = True
             user.save()
@@ -151,25 +154,53 @@ def get_notes(request):
     return answer
 
 
-def edit_notes(data,request):
+def edit_notes(request):
+    data = request.data
     if not check_notes(data):
         answer = {
             "status_code":400,
-            "text":"передан пустой словарь"
+            "text":"передан пустой или некорректный словарь"
         }
         return answer
     user = request.user
+    pk = data.get('id')
     title = data.get('title')
     description = data.get('description')
-    slug = slugify(data.get('title'))
-    note = Note.objects.update_or_create(#разобрать метод
-        user,title,description,slug
-        )
+    slug = slugify(title)
     tags = data.get('tag')
     tags_list = tags.split(',')
-    if tags_list:
-        tags = [Tags(note = note,tags = tag) for tag in tags_list]
-        Tags.objects.bulk_create(tags)
+    if pk is not None:
+        note = Note.objects.create(
+            user,title,description,slug 
+            )
+        if tags_list:
+            tags = [Tags(note = note,tags = tag) for tag in tags_list]
+            Tags.objects.bulk_create(tags)
+    else:
+        note = Note.objects.filter(id=pk).update(
+            user,title,description,slug 
+            )
+        if tags_list:#?
+            tags = [Tags(note = note,tags = tag) for tag in tags_list]
+            Tags.objects.bulk_update(tags)
+    answer ={
+        "status_code":200,
+        "text": "Все прошло успешно"
+    }
+    return answer
+
+
+def delete_note(request):
+    data = request.data
+    if not check_notes(data):
+        answer = {
+            "status_code":400,
+            "text":"передан пустой или некорректный словарь"
+        }
+        return answer
+    pk = data.get('id')
+    note = Note.objects.filter(id=pk)
+    note.delete()
     answer ={
         "status_code":200,
         "text": "Все прошло успешно"
@@ -195,10 +226,3 @@ def get_context_reg():
         "text": description
     }
     return answer
-    
-
-    
-
-
-
-    
