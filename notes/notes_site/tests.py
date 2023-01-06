@@ -11,7 +11,8 @@ from notes_site.models import (
 from notes_site.service import (
     register_save,
     email_send,
-    get_notes
+    get_notes,
+    authorization
 )
 
 
@@ -21,6 +22,8 @@ class ServiceTestCase(TestCase):
         cls.data = {"email": 'mr@mail.ru', "password1": '12345', "password2": '12345'}
         cls.data1 = {"email": 'mr@mail.ru', "password1": '12345', "password2": '12345'}
         cls.email = "mr@mail.ru"
+        cls.pasword = '12345'
+        cls.data_auth = {"email": "mr@mail.ru", "password":"12345"}
         cls.is_superuser = False
         cls.is_staff = False
         cls.is_active = True
@@ -75,6 +78,21 @@ class ServiceTestCase(TestCase):
         note = notes.filter(tags__in = tags_list)
         answer = {"notes":note}
         self.assertEqual(answer, get_notes(user,self.get_data))
+
+    def test_authorization(self):
+        user = User.objects.create(
+        email = self.email,
+        password = '12345',
+        is_active = True
+        )
+        answer = {
+        "status_code":200,
+        "text":"Успешная авторизация"
+        }
+        auth = authorization(self.data_auth)
+        self.assertEqual(answer, auth)
+
+
 
 
 
