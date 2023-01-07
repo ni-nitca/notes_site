@@ -33,60 +33,50 @@ class IndexView(View):
 
 class AutorizeView(View):
     def post(self,request):
-        template_name = ''
         auth = authorization(request)
         return render(
             request,
-            template_name,
             context=auth
             )
 
 
 class RegisterView(View):
     def post(self,request):
-        template_name = ''
         save = register_save(request)
         return render(
             request,
-            template_name,
             context=save
             )
          
 
 class ActivateView(View):
-    def get(request):
-        template_name = ''
-        hash = request.get('hash')
+    def get(self,request,hash):
         answer = activation(hash)
         return render(
             request,
-            template_name,
             context=answer
             )
 
 
 class NoteCreateView(View):
-    def post(request):
-        template_name = ''
+    def post(self,request):
         create = edit_notes(request)
         return render(
             request,
-            template_name,
             context=create
             )
 
 
 class NoteDetailView(DetailView):
     model = Note
+    context_object_name = 'note'
 
 
 class NoteDeleteView(View):
     def post(request):
-        template_name = ''
         delete = delete_note(request)
         return render(
             request,
-            template_name,
             context=delete
             )
 
