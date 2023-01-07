@@ -8,7 +8,7 @@ from notes_site.models import (
     Tags,
 )
 from django.http import HttpResponse
-from django.contrib.auth import authenticate
+from django.contrib.auth import login
 from notes_site.check import (
     check_reg_password,
     check_register_data,
@@ -20,11 +20,12 @@ from slugify import slugify
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage 
 from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
+from django.conf import settings
 
 
-
-def authorization(request):#test
-    data = request
+def authorization(request):
+    data = request.data
     if not check_authorize_data(data):
         answer = {
             "status_code":400,
@@ -34,20 +35,32 @@ def authorization(request):#test
 
     username = data['email']
     password = data['password']
+    user = User.objects.filter(email=username)
+    us_password = user[0].password
 
-    email = User.objects.filter(email=username)
-    if not email.exists():
+    data_pas = {
+        'email':username,
+        'password1':password,
+        'password2':us_password
+        }
+
+    if not user.exists():
         answer = {
             "status_code":401,
             "text":"Неверный логин или пароль"
         }
         return answer
-    print(username)
-    user = authenticate(username)
-    print (user)
-    if not user.is_active:
+    if not check_reg_password(data_pas):
         answer = {
             "status_code":402,
+            "text":"Неверный логин или пароль"
+        }
+        return answer
+
+    user = login(request,username)
+    if not user[0].is_active:
+        answer = {
+            "status_code":403,
             "text": "Аккаунт не активирован"
         }
         return answer
@@ -68,18 +81,19 @@ def register_save(request):
         }
         return answer
 
-    user = User()
-    email = data.get('email')
-    password = data.get('password1')
-    email_in_db = User.objects.filter(email=email)
-
     if not check_reg_password(data):
         answer = {
             "status_code":401,
             "text":"Пароли не равны между собой"
         }
         return answer
-    if email_in_db:
+
+    user = User()
+    email = data.get('email')
+    password = data.get('password1')
+    email_in_db = User.objects.filter(email=email)
+
+    if email_in_db.exists():
         answer = {
             "status_code":402,
             "text":"Ваша почта уже используется"
@@ -112,12 +126,13 @@ def email_send(data, hash):#test
         'token': hash,
     })
     to_email = data.get('email')
-    email = EmailMessage(
+    print(to_email)
+    send_mail(
         mail_subject,
         message,
-        to=[to_email]
+        settings.EMAIL_HOST_USER,
+        [to_email]
     )
-    email.send()
     return 'Пожалуйста проверьте вашу почту для завершения регистрации'
 
 
@@ -144,13 +159,16 @@ def get_notes(request):
     user = request.user
     data = request.data
     notes = Note.objects.filter(user_id=user)
+
     if not check_tags(data):
         answer = {"notes":notes}
         return answer
+
     tags = data.get("tags")
     tags_list = tags.split(',')
     notes = notes.filter(tags__in = tags_list)
     answer = {"notes":notes}
+
     return answer
 
 
@@ -162,6 +180,7 @@ def edit_notes(request):
             "text":"передан пустой или некорректный словарь"
         }
         return answer
+
     user = request.user
     pk = data.get('id')
     title = data.get('title')
@@ -169,20 +188,23 @@ def edit_notes(request):
     slug = slugify(title)
     tags = data.get('tag')
     tags_list = tags.split(',')
-    if pk is not None:
+
+    if pk is None:
         note = Note.objects.create(
             user,title,description,slug 
             )
         if tags_list:
             tags = [Tags(note = note,tags = tag) for tag in tags_list]
             Tags.objects.bulk_create(tags)
+
     else:
         note = Note.objects.filter(id=pk).update(
             user,title,description,slug 
             )
-        if tags_list:#?
+        if tags_list:#?удалить заметку и вместо неё создать нвоую
             tags = [Tags(note = note,tags = tag) for tag in tags_list]
             Tags.objects.bulk_update(tags)
+    
     answer ={
         "status_code":200,
         "text": "Все прошло успешно"
@@ -198,6 +220,7 @@ def delete_note(request):
             "text":"передан пустой или некорректный словарь"
         }
         return answer
+    #check сущ заметки
     pk = data.get('id')
     note = Note.objects.filter(id=pk)
     note.delete()
@@ -209,6 +232,7 @@ def delete_note(request):
 
 
 def get_context_auth():
+    # defolt для модели,вызоав её через objects.get_or_create
     authorize = Authorize()
     description = authorize.description
     answer = {
