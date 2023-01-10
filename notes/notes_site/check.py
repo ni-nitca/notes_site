@@ -28,7 +28,7 @@ def check_register_data(data: dict):
 def check_authorize_data(data:dict):
     if not isinstance(data, dict):
         return False
-    
+
     values = data.keys()
     true_list = [
         "email",
@@ -53,11 +53,11 @@ def check_notes(data:dict):
         if value not in values:
             return False
     return True
-    
+
 def check_tags(data:dict):
     if not isinstance (data, dict):
         return False
-    
+
     values = data.keys()
     true_list = [
         "tags",
