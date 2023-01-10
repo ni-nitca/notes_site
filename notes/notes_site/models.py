@@ -51,7 +51,7 @@ class Note(models.Model):
     )
 
     def __str__(self):
-        return self.title
+        return str(self.title)
 
     class Meta:
         db_table = "notes"
@@ -71,7 +71,7 @@ class Tags(models.Model):
     )
 
     def __str__(self):
-        return self.note.title
+        return str(self.tag)
 
     class Meta:
         db_table = "tags"
@@ -92,7 +92,7 @@ class EmailHash(models.Model):
     )
 
     def __str__(self):
-        return self.user.email
+        return str(self.hash_text)
 
     class Meta:
         db_table = "hash"
@@ -103,6 +103,7 @@ class EmailHash(models.Model):
 class Registration(SingletonModel):
     description = models.TextField(
         verbose_name="Описание",
+        default="Заполните поля ниже"
     )
     class Meta:
         db_table = "Registration"
@@ -113,6 +114,7 @@ class Registration(SingletonModel):
 class Authorize(SingletonModel):
     description = models.TextField(
         verbose_name="Описание",
+        default="Приглашаем вас авторизоваться для просмотра заметок"
     )
     class Meta:
         db_table = "Authorize"
@@ -136,4 +138,3 @@ class MailSettings(SingletonModel):
         db_table = "mail_setinngs"
         verbose_name = "Настройки почты"
         verbose_name_plural = "Настройки почт"
-
