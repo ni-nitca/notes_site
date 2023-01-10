@@ -7,8 +7,6 @@ from notes_site.models import (
     MailSettings,
     Tags,
 )
-from django.http import HttpResponse
-from django.contrib.auth import login
 from notes_site.check import (
     check_reg_password,
     check_register_data,
@@ -18,11 +16,10 @@ from notes_site.check import (
 )
 from slugify import slugify
 from django.template.loader import render_to_string
-from django.core.mail import EmailMessage 
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.conf import settings
-
+from uuid import uuid4
 
 def authorization(request):
     data = request.data
@@ -33,13 +30,13 @@ def authorization(request):
             }
         return answer
 
-    username = data['email']
-    password = data['password']
-    user = User.objects.filter(email=username)
-    us_password = user[0].password
+    email = data.get('email')
+    password = data.get('password')
+    user = User.objects.filter(email=email)[0]
+    us_password = user.password
 
     data_pas = {
-        'email':username,
+        'email':email,
         'password1':password,
         'password2':us_password
         }
@@ -57,8 +54,7 @@ def authorization(request):
         }
         return answer
 
-    user = login(request,username)
-    if not user[0].is_active:
+    if not user.is_active:
         answer = {
             "status_code":403,
             "text": "Аккаунт не активирован"
@@ -93,7 +89,7 @@ def register_save(request):
     password = data.get('password1')
     email_in_db = User.objects.filter(email=email)
 
-    if email_in_db.exists():
+    if email_in_db:
         answer = {
             "status_code":402,
             "text":"Ваша почта уже используется"
@@ -106,7 +102,7 @@ def register_save(request):
     hash_obj = EmailHash.objects.create(user=user)
     hash = hash_obj.hash_text
 
-    email_send(data, hash)
+    email_send(email, hash)
     answer = {
         "status_code":200,
         "text":"Все прошло успешно"
@@ -114,31 +110,33 @@ def register_save(request):
     return answer
 
 
-def email_send(data, hash):#test
-    mail_obj = MailSettings.objects.get_or_create(pk=1)
-    mail_obj = mail_obj[0]
+def email_send(email, hash, repeat = False):
+    to_email = email
+    mail_obj = MailSettings.objects.get_or_create(pk=1)[0]
     current_site = mail_obj.domen
-    mail_subject = mail_obj.description
+    mail_subject = mail_obj.title
 
     template_name = "notes_site/acc_active_email.html"
     message = render_to_string(template_name, {
-        'domain': current_site, 
+        'domain': current_site,
         'token': hash,
     })
-    to_email = data.get('email')
-    print(to_email)
+
     send_mail(
         mail_subject,
         message,
         settings.EMAIL_HOST_USER,
         [to_email]
     )
-    return 'Пожалуйста проверьте вашу почту для завершения регистрации'
+    if not repeat:
+        return 'Пожалуйста проверьте вашу почту для завершения регистрации'
+    else:
+        return 'Для завершения смены пароля перейдите по ссылке на почте'
 
 
-def activation(hash):#test атрибуты гет урлов
-    user_hash = EmailHash.objects.filter(hash_text=hash) 
-    if user_hash.exists():
+def activation(hash):
+    user_hash = EmailHash.objects.filter(hash_text=hash)[0]
+    if user_hash:
         user = user_hash.user
         if user is not None:
             user.is_active = True
@@ -151,6 +149,45 @@ def activation(hash):#test атрибуты гет урлов
     answer = {
         "status_code":404,
         "text":"Некорректаная ссылка"
+    }
+    return answer
+
+def restore_password(request):
+    data = request.data
+    if not check_register_data(data):
+        answer = {
+            "status_code":400,
+            "text": "Неверные данные"
+            }
+        return answer
+    if not check_reg_password(data):
+        answer = {
+            "status_code":401,
+            "text":"Пароли не равны между собой"
+        }
+        return answer
+
+    email = data.get("email")
+    password = data.get('password1')
+
+    user = User.objects.filter(email=email)[0]
+    if not user.exists():
+        answer = {
+            "status_code":401,
+            "text":"Аккаунт не найден"
+        }
+        return answer
+    user.is_active = False
+    password = make_password(password)
+    user.update(password)
+    hash_obj = EmailHash.objects.filter(user=user)[0]
+    hash = uuid4
+    hash_obj.update(hash)
+
+    email_send(email, hash)
+    answer = {
+        "status_code":200,
+        "text":"Все прошло успешно"
     }
     return answer
 
@@ -191,20 +228,19 @@ def edit_notes(request):
 
     if pk is None:
         note = Note.objects.create(
-            user,title,description,slug 
+            user,title,description,slug
             )
-        if tags_list:
-            tags = [Tags(note = note,tags = tag) for tag in tags_list]
-            Tags.objects.bulk_create(tags)
-
     else:
-        note = Note.objects.filter(id=pk).update(
-            user,title,description,slug 
+        note = Note.objects.filter(id=pk)[0]
+        note.delete()
+        note = Note.objects.create(
+            user,title,description,slug
             )
-        if tags_list:#?удалить заметку и вместо неё создать нвоую
-            tags = [Tags(note = note,tags = tag) for tag in tags_list]
-            Tags.objects.bulk_update(tags)
-    
+
+    if tags_list:
+        tags = [Tags(note = note,tags = tag) for tag in tags_list]
+        Tags.objects.bulk_create(tags)
+
     answer ={
         "status_code":200,
         "text": "Все прошло успешно"
@@ -214,15 +250,24 @@ def edit_notes(request):
 
 def delete_note(request):
     data = request.data
+
     if not check_notes(data):
         answer = {
             "status_code":400,
             "text":"передан пустой или некорректный словарь"
         }
         return answer
-    #check сущ заметки
+
     pk = data.get('id')
-    note = Note.objects.filter(id=pk)
+    note = Note.objects.filter(id=pk)[0]
+
+    if not note.exists():
+        answer = {
+            "status_code":401,
+            "text":"Заметки не существует"
+        }
+        return answer
+
     note.delete()
     answer ={
         "status_code":200,
@@ -232,8 +277,7 @@ def delete_note(request):
 
 
 def get_context_auth():
-    # defolt для модели,вызоав её через objects.get_or_create
-    authorize = Authorize()
+    authorize = Authorize.objects.get_or_create()[0]
     description = authorize.description
     answer = {
         "status_code":200,
@@ -243,7 +287,7 @@ def get_context_auth():
 
 
 def get_context_reg():
-    registration = Registration()
+    registration = Registration.objects.get_or_create()[0]
     description = registration.description
     answer = {
         "status_code":200,
