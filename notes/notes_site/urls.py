@@ -1,9 +1,10 @@
-from django.urls import path 
+from django.urls import path
 from django.contrib.auth import views as auth_views
 from notes_site.views import (
     IndexView,
     AutorizeView,
     RegisterView,
+    RestorePassword,
     ActivateView,
     NoteDetailView,
     NoteCreateView,
@@ -15,6 +16,7 @@ urlpatterns = [
     path('', IndexView.as_view(), name = 'home'),
     path('auth/', AutorizeView.as_view(), name = 'authorize'),
     path('register/', RegisterView.as_view(), name = 'registrarion'),
+    path('restore/', RestorePassword.as_view(), name = 'restore'),
     path('activate/<str:hash>', ActivateView.as_view(), name = 'activate'),
     path('note/<slug:slug>',NoteDetailView.as_view(),name = 'note-detail'),
     path('note/new', NoteCreateView.as_view(), name = 'note-create'),
