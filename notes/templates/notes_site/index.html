@@ -1,0 +1,9 @@
+{% extends 'notes_site/base.html' %}
+
+{% block content %}
+    {% if user.is_anonymous %}
+        {% include 'notes_site/signin_signup.html' %}
+    {% else %}
+        {% include 'notes_site/notes_dashboard.html' %}
+    {% endif %}
+{% endblock %}
