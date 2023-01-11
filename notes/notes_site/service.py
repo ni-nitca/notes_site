@@ -22,7 +22,7 @@ from django.conf import settings
 from uuid import uuid4
 
 def authorization(request):
-    data = request.data
+    data = request.POSt
     if not check_authorize_data(data):
         answer = {
             "status_code":400,
@@ -32,7 +32,8 @@ def authorization(request):
 
     email = data.get('email')
     password = data.get('password')
-    user = User.objects.filter(email=email)[0]
+    user = User.objects.filter(email=email)
+    user = user.first()
     us_password = user.password
 
     data_pas = {
@@ -41,7 +42,7 @@ def authorization(request):
         'password2':us_password
         }
 
-    if not user.exists():
+    if not user:
         answer = {
             "status_code":401,
             "text":"Неверный логин или пароль"
@@ -69,7 +70,7 @@ def authorization(request):
 
 
 def register_save(request):
-    data = request.data
+    data = request.POST
     if not check_register_data(data):
         answer = {
             "status_code":400,
@@ -89,7 +90,7 @@ def register_save(request):
     password = data.get('password1')
     email_in_db = User.objects.filter(email=email)
 
-    if email_in_db:
+    if email_in_db.exists():
         answer = {
             "status_code":402,
             "text":"Ваша почта уже используется"
@@ -135,7 +136,8 @@ def email_send(email, hash, repeat = False):
 
 
 def activation(hash):
-    user_hash = EmailHash.objects.filter(hash_text=hash)[0]
+    user_hash = EmailHash.objects.filter(hash_text=hash)
+    user_hash = user_hash.first()
     if user_hash:
         user = user_hash.user
         if user is not None:
@@ -160,41 +162,69 @@ def restore_password(request):
             "text": "Неверные данные"
             }
         return answer
-    if not check_reg_password(data):
-        answer = {
-            "status_code":401,
-            "text":"Пароли не равны между собой"
-        }
-        return answer
 
     email = data.get("email")
-    password = data.get('password1')
 
-    user = User.objects.filter(email=email)[0]
-    if not user.exists():
+    user = User.objects.filter(email=email)
+    user = user.first()
+    if not user:
         answer = {
             "status_code":401,
             "text":"Аккаунт не найден"
         }
         return answer
     user.is_active = False
-    password = make_password(password)
-    user.update(password)
-    hash_obj = EmailHash.objects.filter(user=user)[0]
+    hash_obj = EmailHash.objects.filter(user =user)
+    hash_obj = hash_obj.first()
+
     hash = uuid4
     hash_obj.update(hash)
+    repeat = True
 
-    email_send(email, hash)
+    email_send(email, hash, repeat)
     answer = {
         "status_code":200,
         "text":"Все прошло успешно"
     }
     return answer
 
+def inventig_password(request,hash):
+    data = request.POST
+    user_hash = EmailHash.objects.filter(hash_text=hash)
+    user_hash = user_hash.first()
+    if user_hash and data.exists():
+        user = user_hash.user
+        email = user.email
+        password1 = data.get("password1")
+        password2 = data.get("password2")
+
+        data_pas = {
+            'email':email,
+            'password1':password1,
+            'password2':password2
+        }
+
+        if not check_reg_password(data_pas):
+            answer = {
+                "status_code":402,
+                "text":"Неверный логин или пароль"
+            }
+            return answer
+
+        is_active = True
+        password = make_password(password1)
+        user.update(password, is_active)
+        answer = {
+            "status_code":200,
+            "text":"Все прошло успешно"
+        }
+        return answer
+
+
 
 def get_notes(request):
     user = request.user
-    data = request.data
+    data = request.POST
     notes = Note.objects.filter(user_id=user)
 
     if not check_tags(data):
@@ -210,7 +240,7 @@ def get_notes(request):
 
 
 def edit_notes(request):
-    data = request.data
+    data = request.POST
     if not check_notes(data):
         answer = {
             "status_code":400,
@@ -231,7 +261,8 @@ def edit_notes(request):
             user,title,description,slug
             )
     else:
-        note = Note.objects.filter(id=pk)[0]
+        note = Note.objects.filter(id=pk)
+        note = note.first()
         note.delete()
         note = Note.objects.create(
             user,title,description,slug
@@ -250,6 +281,7 @@ def edit_notes(request):
 
 def delete_note(request):
     data = request.data
+    user = request.user
 
     if not check_notes(data):
         answer = {
@@ -258,10 +290,11 @@ def delete_note(request):
         }
         return answer
 
-    pk = data.get('id')
-    note = Note.objects.filter(id=pk)[0]
+    slug = data.get('slug')
+    note = Note.objects.filter(slug=slug,user=user)
+    note = note.first()
 
-    if not note.exists():
+    if not note:
         answer = {
             "status_code":401,
             "text":"Заметки не существует"
