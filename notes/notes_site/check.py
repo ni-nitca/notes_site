@@ -24,6 +24,17 @@ def check_register_data(data: dict):
             return False
     return True
 
+def check_restore_password(data: dict):
+    if not isinstance(data, dict):
+        return False
+    values = data.keys()
+    true_list = [
+        "email",
+    ]
+    if values not in true_list:
+            return False
+    return True
+
 
 def check_authorize_data(data:dict):
     if not isinstance(data, dict):
