@@ -8,7 +8,8 @@ from notes_site.views import (
     ActivateView,
     NoteDetailView,
     NoteCreateView,
-    NoteDeleteView
+    NoteDeleteView,
+    UserLogoutView
 )
 
 
@@ -16,6 +17,7 @@ urlpatterns = [
     path('', IndexView.as_view(), name = 'home'),
     path('auth/', AutorizeView.as_view(), name = 'authorize'),
     path('register/', RegisterView.as_view(), name = 'registrarion'),
+    path('logout/', UserLogoutView.as_view(), name='logout'),
     path('restore/', RestorePassword.as_view(), name = 'restore'),
     path('activate/<str:hash>', ActivateView.as_view(), name = 'activate'),
     path('note/<slug:slug>',NoteDetailView.as_view(),name = 'note-detail'),
