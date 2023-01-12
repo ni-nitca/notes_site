@@ -9,6 +9,22 @@ def check_reg_password(data:dict):
     return False
 
 
+def check_restore_data(data:dict):
+    if not check_register_data(data):
+        return False
+
+    values = data.keys()
+    true_list = [
+        "hash",
+        "password1",
+        "password2",
+    ]
+    for value in true_list:
+        if value not in values:
+            return False
+    return True
+
+
 def check_register_data(data: dict):
     if not isinstance(data, dict):
         return False
@@ -23,6 +39,7 @@ def check_register_data(data: dict):
         if value not in values:
             return False
     return True
+
 
 def check_restore_password(data: dict):
     if not isinstance(data, dict):
@@ -56,7 +73,7 @@ def check_notes(data:dict):
 
     values = data.keys()
     true_list = [
-        "id"
+        "slug"
         "title",
         "description",
     ]
