@@ -47,7 +47,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    #"django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -126,13 +126,16 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-EMAIL_BACKEND = 'django.core.mail.console.smtp.EmailBackend'
 
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_HOST_USER = 'mr.iko.44@mail.ru'
+EMAIL_HOST_PASSWORD = '8mVtJaWLhpgrJc41KxNv'
+EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
-EMAIL_HOST = 'smtp.yandex.ru'
-EMAIL_HOST_USER = 'f0ru5@yandex.ru'
-EMAIL_HOST_PASSWORD = 'AudiRS68'
-EMAIL_PORT = 465
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://*"
+]
