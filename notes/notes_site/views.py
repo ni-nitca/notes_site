@@ -1,6 +1,9 @@
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.http import JsonResponse
+from django.contrib.auth import login
 from notes_site.models import (Note)
+from django.contrib.auth.views import LogoutView
 from notes_site.service import (
     register_save,
     activation,
@@ -15,13 +18,13 @@ from notes_site.service import (
     )
 from django.views.generic import (
     View,
-    DetailView
+    DetailView,
 )
 
 
 class IndexView(View):
     def get(self, request):
-        template_name = 'index.html'
+        template_name = 'notes_site/index.html'
         if request.user.is_authenticated:
             context = get_notes(request)
         else:
@@ -32,11 +35,10 @@ class IndexView(View):
 class AutorizeView(View):
     def post(self,request):
         auth = authorization(request)
-        return JsonResponse(
-            auth
-            )
+        return login(request, auth)
 
-##logout
+class UserLogoutView(LogoutView):
+    next_page = reverse_lazy(IndexView)
 
 class RegisterView(View):
     def post(self,request):
@@ -52,16 +54,16 @@ class RestorePassword(View):
 
 
 class InventingPassword(View):
-    def get(self,hash):
+    def get(self,request,hash):
         answer = activation(hash)
         return JsonResponse(answer)
-    def post(self,request,hash):
-        answer = inventig_password(request,hash)
+    def post(self,request):
+        answer = inventig_password(request)
         return JsonResponse(answer)
 
 
 class ActivateView(View):
-    def get(self, hash):
+    def get(self,request, hash):
         answer = activation(hash)
         return JsonResponse(answer)
 
