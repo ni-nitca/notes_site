@@ -31,14 +31,12 @@ def authorization(request):
             }
         return answer
 
-
     email = data.get('email')
     password = data.get('password')
-    password = make_password(password)    
-    user = User.objects.filter(email=email)#фильтр по паролю не проходит потому что пароли не равны
+    password = make_password(password, salt='')    
+    user = User.objects.filter(email=email,password=password)
 
     if not user.exists():
-        print(user.exists())
         answer = {
             "status_code":401,
             "text":"Неверный логин или пароль"
@@ -52,7 +50,6 @@ def authorization(request):
             "text": "Аккаунт не активирован"
         }
         return answer
-    
 
     answer = {
         "status_code":200,
@@ -91,7 +88,7 @@ def register_save(request):
         return answer
     
     user.email = email
-    user.password = make_password(password)
+    user.password = make_password(password, salt='')
     user.save()
     hash_obj = EmailHash.objects.create(user=user)
     hash = hash_obj.hash_text
@@ -196,7 +193,7 @@ def restore_password(request):
     }
     return answer
 
-def inventig_password(request,hash):
+def inventig_password(request):
     data = request.POST
     if not check_restore_data(data):
         answer = {
@@ -232,7 +229,7 @@ def inventig_password(request,hash):
             }
         return answer
 
-    password = make_password(password1)
+    password = make_password(password1,salt='')
     user.update(password = password)
     answer = {
         "status_code":200,
