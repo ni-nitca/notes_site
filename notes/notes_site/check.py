@@ -49,7 +49,7 @@ def check_restore_password(data: dict):
         "email",
     ]
     if values not in true_list:
-            return False
+        return False
     return True
 
 
