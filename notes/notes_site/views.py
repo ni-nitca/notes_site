@@ -33,21 +33,31 @@ class IndexView(View):
 
 
 class AutorizeView(View):
+    def get(self,request):
+        template_name = ''
+        return render(request,template_name)
     def post(self,request):
+        template_name = ''
         auth = authorization(request)
-        return login(request, auth)
+        return reverse_lazy(request,template_name, auth)
+
 
 class UserLogoutView(LogoutView):
     next_page = reverse_lazy(IndexView)
 
+
 class RegisterView(View):
+    def get(self,request):
+        template_name = ''
+        return render(request,template_name)
     def post(self,request):
         save = register_save(request)
-        return JsonResponse(
-            save
-            )
+        return JsonResponse(save)
 
 class RestorePassword(View):
+    def get(self,request):
+        template_name = ''
+        return render(request, template_name) 
     def post(self,request):
         restore =  restore_password(request)
         return JsonResponse(restore)
@@ -55,8 +65,9 @@ class RestorePassword(View):
 
 class InventingPassword(View):
     def get(self,request,hash):
+        template_name = ''
         answer = activation(hash)
-        return JsonResponse(answer)
+        return render(request,template_name,answer)
     def post(self,request):
         answer = inventig_password(request)
         return JsonResponse(answer)
@@ -69,6 +80,9 @@ class ActivateView(View):
 
 
 class NoteCreateView(View):
+    def get(self,request):
+        template_name = ''
+        return render(request,template_name)
     def post(self,request):
         create = edit_notes(request)
         return JsonResponse(create)
@@ -80,6 +94,9 @@ class NoteDetailView(DetailView):
 
 
 class NoteDeleteView(View):
+    def get(self,request):
+        template_name = ''
+        return render(request,template_name)
     def post(self,request):
         delete = delete_note(request)
         return JsonResponse(delete)
