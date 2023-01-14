@@ -9,17 +9,26 @@ from notes_site.models import (
     User
     )   
 
+
 @admin.register(User)
 class UsersAdmin(admin.ModelAdmin):
     class Meta:
         model = User
         fields = [ "email","is_activate ", "is_staff", "is_superuser"]
 
+
+class TagsInline(admin.StackedInline):
+    model = Tags
+    extra = 0
+
+
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
     class Meta:
         model = Note
         fields = [ "title","description ", "posted_date"]
+    
+    inlines = [TagsInline]
 
 
 @admin.register(Authorize)
@@ -41,9 +50,3 @@ class MailSettingsAdmin(SingletonModelAdmin):
     class Meta:
         model = MailSettings
         fields = ['domen','title','description']
-
-@admin.register(Tags)
-class TagsAdmin(admin.ModelAdmin):
-    class Meta:
-        model = Tags
-        fields = ['note','tag']
