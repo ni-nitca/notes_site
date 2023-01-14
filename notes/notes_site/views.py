@@ -42,10 +42,6 @@ class AutorizeView(View):
         return reverse_lazy(request,template_name, auth)
 
 
-class UserLogoutView(LogoutView):
-    next_page = reverse_lazy(IndexView)
-
-
 class RegisterView(View):
     def get(self,request):
         template_name = ''
@@ -53,6 +49,7 @@ class RegisterView(View):
     def post(self,request):
         save = register_save(request)
         return JsonResponse(save)
+
 
 class RestorePassword(View):
     def get(self,request):
