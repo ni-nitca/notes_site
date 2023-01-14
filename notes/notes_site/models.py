@@ -126,13 +126,16 @@ class MailSettings(SingletonModel):
     domen = models.CharField(
         max_length = 64,
         verbose_name = "Домен",
+        default = "127.0.0.0.1:8000"
     )
     title = models.CharField(
         max_length = 128,
         verbose_name = "Заголовок",
+        default = "Актвация аккаунта"
     )
     description = models.TextField(
-        verbose_name = "Описание"
+        verbose_name = "Описание",
+        default = "Активация аккаунта"
     )
     class Meta:
         db_table = "mail_setinngs"
