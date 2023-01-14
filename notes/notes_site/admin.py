@@ -5,9 +5,15 @@ from notes_site.models import (
     Authorize,
     Registration,
     MailSettings,
-    Tags
+    Tags,
+    User
     )   
 
+@admin.register(User)
+class UsersAdmin(admin.ModelAdmin):
+    class Meta:
+        model = User
+        fields = [ "email","is_activate ", "is_staff", "is_superuser"]
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
