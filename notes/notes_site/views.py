@@ -42,22 +42,27 @@ class AutorizeView(View):
         return reverse_lazy(request,template_name, auth)
 
 
+class UserLogoutView(LogoutView):
+    next_page = 'home'
+
+
 class RegisterView(View):
     def get(self,request):
         template_name = ''
         return render(request,template_name)
     def post(self,request):
+        template_name = ''
         save = register_save(request)
-        return JsonResponse(save)
-
+        return render(request, template_name, save)
 
 class RestorePassword(View):
     def get(self,request):
         template_name = ''
         return render(request, template_name) 
     def post(self,request):
+        template_name = ''
         restore =  restore_password(request)
-        return JsonResponse(restore)
+        return render(request, template_name, restore)
 
 
 class InventingPassword(View):
@@ -66,19 +71,21 @@ class InventingPassword(View):
         answer = activation(hash)
         return render(request,template_name,answer)
     def post(self,request):
+        template_name = ''
         answer = inventig_password(request)
-        return JsonResponse(answer)
+        return render(request, template_name, answer)
 
 
 class ActivateView(View):
     def get(self,request, hash):
+        template_name = ''
         answer = activation(hash)
-        return JsonResponse(answer)
+        return render(request, template_name, answer)
 
 
 class NoteCreateView(View):
     def get(self,request):
-        template_name = ''
+        template_name = ''#если есть slug вернуть словарь
         return render(request,template_name)
     def post(self,request):
         create = edit_notes(request)
@@ -88,7 +95,14 @@ class NoteCreateView(View):
 class NoteDetailView(DetailView):
     model = Note
     context_object_name = 'note'
-
+    #что содержит detail переставить с id в slug
+class NoteEditView(View):
+    def get(self,request):
+        template_name = ''
+        return render(request,template_name)    
+    def post(self,request):
+        create = edit_notes(request)
+        return JsonResponse(create)
 
 class NoteDeleteView(View):
     def get(self,request):
