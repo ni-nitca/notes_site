@@ -17,7 +17,7 @@ from notes_site.check import (
 )
 from slugify import slugify
 from django.template.loader import render_to_string
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password,check_password
 from django.core.mail import send_mail
 from django.conf import settings
 from uuid import uuid4
@@ -30,11 +30,11 @@ def authorization(request):
             "text": "Неверные данные"
             }
         return answer
+        
 
     email = data.get('email')
     password = data.get('password')
-    password = make_password(password, salt='')    
-    user = User.objects.filter(email=email,password=password)
+    user = User.objects.filter(email=email)
 
     if not user.exists():
         answer = {
@@ -44,7 +44,17 @@ def authorization(request):
         return answer
 
     user = user.first()
-    if not user.is_active:
+    password = user.check_password(password)
+    is_active = user.is_active
+
+    if not password:
+        answer = {
+            "status_code":401,
+            "text":"Неверный логин или пароль"
+        }
+        return answer
+    
+    if not is_active:
         answer = {
             "status_code":403,
             "text": "Аккаунт не активирован"
@@ -53,7 +63,7 @@ def authorization(request):
 
     answer = {
         "status_code":200,
-        "text":"Успешная авторизация"
+        "text":"Вы успешно авторизованы"
         }
     return user
 
@@ -88,7 +98,7 @@ def register_save(request):
         return answer
     
     user.email = email
-    user.password = make_password(password, salt='')
+    user.set_password(password)
     user.save()
     hash_obj = EmailHash.objects.create(user=user)
     hash = hash_obj.hash_text
@@ -96,28 +106,32 @@ def register_save(request):
     email_send(email, hash)
     answer = {
         "status_code":200,
-        "text":"Все прошло успешно"
+        "text":"Чтобы завершить регистрацию, перейдите по ссылке на почте"
     }
     return answer
 
 
-def email_send(email, hash, repeat = False):
+def email_send(email, hash, repeat = False):#
     to_email = email
     mail_obj = MailSettings.objects.get_or_create(pk=1)[0]
     current_site = mail_obj.domen
     mail_subject = mail_obj.title
+    description = mail_obj.description
 
     template_name = "notes_site/acc_active_email.html"
+    link = f"http://{current_site}/activate/{hash}"
     message = render_to_string(template_name, {
-        'domain': current_site,
+        'link': link,
         'token': hash,
+        'description':description,
     })
 
     send_mail(
         mail_subject,
         message,
         settings.EMAIL_HOST_USER,
-        [to_email]
+        [to_email],
+        html_message = message
     )
     if not repeat:
         return 'Пожалуйста проверьте вашу почту для завершения регистрации'
@@ -163,15 +177,12 @@ def restore_password(request):
         return answer
 
     user = user.first()
-    if user.is_active:
+    if not user.is_active:
         answer = {
             "status_code":402,
             "text":"Для восстановления пароля,завершите регистрацию"
         }
         return answer
-
-    user.is_active = False
-    user.save()
 
     hash_obj = EmailHash.objects.filter(user = user)
     if not hash_obj.exists():
@@ -181,9 +192,8 @@ def restore_password(request):
         }
         return answer
 
-    hash_obj = hash_obj.first()
     hash = uuid4
-    hash_obj.update(hash)
+    hash_obj.update(hash_text=hash)
     repeat = True
 
     email_send(email, hash, repeat)
@@ -225,12 +235,12 @@ def inventig_password(request):
     if not check_reg_password(data_pas):
         answer = {
             "status_code":402,
-            "text":"Пароли не равны между собой"
+            "text":"Введены разные пароли"
             }
         return answer
 
-    password = make_password(password1,salt='')
-    user.update(password = password)
+    user.set_password(password1)
+
     answer = {
         "status_code":200,
         "text":"Все прошло успешно"
@@ -241,64 +251,71 @@ def inventig_password(request):
 def get_notes(request):
     user = request.user
     data = request.POST
-    notes = Note.objects.filter(user_id=user)
+    notes = Note.objects.filter(user=user)
 
     if not check_tags(data):
         answer = {"notes":notes}
         return answer
 
     tags = data.get("tags")
-    tags_list = tags.split(',')
+    tags_list = tags.split(' ')
     notes = notes.filter(tags__in = tags_list)
     answer = {"notes":notes}
 
     return answer
 
 
-def edit_notes(request):
-    data = request.POST
+def edit_notes(request,user):
+    data = request
     if not check_notes(data):
         answer = {
             "status_code":400,
             "text":"передан пустой или некорректный словарь"
         }
         return answer
-
-    user = request.user
+    
+    user = data.get("user")
     slug = data.get('slug')
     title = data.get('title')
     description = data.get('description')
-    slug_hash = uuid4
+    slug_hash = f"{uuid4()}"
     slug_hash = slug_hash.split('-')[0]
-    slug = slugify(f"{title}/{slug_hash}")
-    tags = data.get('tag')
-    tags_list = tags.split(',')
+    tags = data.get('tags')
+    tags_list = tags.split(' ')
 
-    if slug is None:
-        note = Note.objects.create(
-            user,title,description,slug
+    if not slug:
+        slug = slugify(f"{title}/{slug_hash}")
+        Note.objects.create(
+            user = user,
+            title= title,
+            description = description,
+            slug = slug
             )
     else:
         note = Note.objects.filter(slug=slug)
-        note = note.first()
+        note.first()
         note.delete()
-        note = Note.objects.create(
-            user,title,description,slug
+        slug = slugify(f"{title}/{slug_hash}")
+        Note.objects.create(
+            user = user,
+            title= title,
+            description = description,
+            slug = slug
             )
 
     if tags_list:
         tags = [Tags(note = note,tags = tag) for tag in tags_list]
         Tags.objects.bulk_create(tags)
 
-    answer ={
-        "status_code":200,
-        "text": "Все прошло успешно"
-    }
-    return answer
+        answer ={
+            "status_code":200,
+            "text": "Все прошло успешно"
+        }
+    return Note.objects.filter(title=title)
 
 
 def delete_note(request):
-    data = request.data
+    data = request.POST
     user = request.user
 
     if not check_notes(data):
@@ -345,3 +362,5 @@ def get_context_reg():
         "text": description
     }
     return answer
+
+
