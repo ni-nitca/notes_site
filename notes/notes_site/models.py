@@ -4,6 +4,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import AbstractUser
 from notes_site.managers import UserManager
 from uuid import uuid4
+from django.shortcuts import reverse
 
 
 class User(AbstractUser, PermissionsMixin):
@@ -23,7 +24,6 @@ class User(AbstractUser, PermissionsMixin):
         db_table = "users"
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-
 
 
 class Note(models.Model):
@@ -50,6 +50,15 @@ class Note(models.Model):
         auto_now_add=True,
     )
 
+    def get_remove_url(self):#подумать над тем как вернуть на главную
+        return f"/note/{self.slug}"
+
+    def get_edit_url(self):
+        return f"/note/{self.slug}"
+
+    def get_absolute_url(self):
+        return reverse("note-create", kwargs={"slug": self.slug})
+
     def __str__(self):
         return str(self.title)
 
@@ -60,7 +69,7 @@ class Note(models.Model):
 
 
 class Tags(models.Model):
-    note = models.ForeignKey(
+    tags = models.ForeignKey(
         Note,
         verbose_name="Заметка",
         on_delete=models.CASCADE,
