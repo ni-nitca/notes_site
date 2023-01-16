@@ -14,7 +14,10 @@ from notes_site.models import (
 class UsersAdmin(admin.ModelAdmin):
     class Meta:
         model = User
-        fields = [ "email","is_activate ", "is_staff", "is_superuser"]
+    fields = [ 
+        "email",
+        "is_active"
+        ]
 
 
 class TagsInline(admin.StackedInline):
@@ -26,7 +29,10 @@ class TagsInline(admin.StackedInline):
 class NoteAdmin(admin.ModelAdmin):
     class Meta:
         model = Note
-        fields = [ "title","description ", "posted_date"]
+    fields = [ 
+        "title",
+        "description",
+    ]
     
     inlines = [TagsInline]
 
