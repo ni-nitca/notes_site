@@ -32,6 +32,7 @@ class NoteAdmin(admin.ModelAdmin):
     fields = [ 
         "title",
         "description",
+        "slug",
     ]
     
     inlines = [TagsInline]
