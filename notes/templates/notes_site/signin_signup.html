@@ -1,73 +1,100 @@
 <div style="margin-top: 5%">
-<div id="signin" style="display:block;" class="container-fluid">
-            <div class="rounded d-flex justify-content-center">
-                <div class="col-md-4 col-sm-12 shadow-lg p-5 bg-light">
-                    <div class="text-center">
-                        <h3 class="text-primary">Вход</h3>
-                    </div>
-                    <form action="/auth/" method="post">
-                        {% csrf_token %}
-                        <div class="p-4">
-                            <div class="input-group mb-3">
-                                <span class="input-group-text bg-primary"><i
-                                        class="bi bi-person-plus-fill text-white"></i></span>
-                                <input type="text" class="form-control" placeholder="Email" name="email">
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text bg-primary"><i
-                                        class="bi bi-key-fill text-white"></i></span>
-                                <input type="password" class="form-control" placeholder="Пароль" name="password">
-                            </div>
-                            <button class="btn btn-primary text-center mt-3" type="submit" style="width:100%">
-                                Войти
-                            </button>
-                            <p class="text-center mt-5">Всё ещё нет аккаунта?
-                                <a class="btn text-primary" style="margin-bottom: 1%" onclick="showSignup()">Регистрация</a>
-                            </p>
-                            <p class="text-center text-primary">
-                                <a href="{% url 'restore_password' %">Восстановить пароль</a>
-                            </p>
+    <div id="signin" style="display:block;" class="container-fluid">
+                <div class="rounded d-flex justify-content-center">
+                    <div class="col-md-4 col-sm-12 shadow-lg p-5 bg-light">
+                        <div class="text-center">
+                            <h3 class="text-primary">Вход</h3>
                         </div>
-                    </form>
+                        <form action="/auth/" id="auth" method="post">
+                            {% csrf_token %}
+                            <div class="p-4">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-person-plus-fill text-white"></i></span>
+                                    <input type="text" class="form-control" placeholder="Email" name="email" type="email" required>
+                                </div>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-key-fill text-white"></i></span>
+                                    <input type="password" class="form-control" placeholder="Пароль" name="password" required>
+                                </div>
+                                <button class="btn btn-primary text-center mt-3" style="width:100%" type="submit">
+                                    Войти
+                                </button>
+                                <p class="text-center mt-5">Всё ещё нет аккаунта?
+                                    <a class="btn text-primary" style="margin-bottom: 1%" onclick="showSignup()">Регистрация</a>
+                                </p>
+                                <p class="text-center mt-1">
+                                    <a class="btn text-primary" style="margin-bottom: 1%" onclick="showRestorePass()">Восстановить пароль</a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-</div>
+    </div>
 
-<div id="signup" style="display:none;" class="container-fluid">
-            <div class="rounded d-flex justify-content-center">
-                <div class="col-md-4 col-sm-12 shadow-lg p-5 bg-light">
-                    <div class="text-center">
-                        <h3 class="text-primary">Регистрация</h3>
-                    </div>
-                    <form action="/register/" method="post">
-                        {% csrf_token %}
-                        <div class="p-4">
-                            <div class="input-group mb-3">
-                                <span class="input-group-text bg-primary"><i
-                                        class="bi bi-person-plus-fill text-white"></i></span>
-                                <input type="text" class="form-control" placeholder="Email" name="email">
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text bg-primary"><i
-                                        class="bi bi-key-fill text-white"></i></span>
-                                <input type="password" class="form-control" placeholder="Пароль" name="password1">
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text bg-primary"><i
-                                        class="bi bi-key-fill text-white"></i></span>
-                                <input type="password" class="form-control" placeholder="Повторить пароль" name="password2">
-                            </div>
-                            <button class="btn btn-primary text-center mt-3" type="submit" style="width:100%">
-                                Регистрация
-                            </button>
-                            <p class="text-center mt-5">Уже есть аккаунт?
-                                <a class="text-primary" onclick="showSignin()">Войти</span>
-                            </p>
+    <div id="signup" style="display:none;" class="container-fluid">
+                <div class="rounded d-flex justify-content-center">
+                    <div class="col-md-4 col-sm-12 shadow-lg p-5 bg-light">
+                        <div class="text-center">
+                            <h3 class="text-primary">Регистрация</h3>
                         </div>
-                    </form>
+                        <form action="/register/" method="post">
+                            {% csrf_token %}
+                            <div class="p-4">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-person-plus-fill text-white"></i></span>
+                                    <input type="text" class="form-control" placeholder="Email" name="email" type="email" autoComplete="new-password" required>
+                                </div>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-key-fill text-white"></i></span>
+                                    <input type="password" class="form-control" placeholder="Пароль" name="password1" autoComplete="new-password" required>
+                                </div>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-key-fill text-white"></i></span>
+                                    <input type="password" class="form-control" placeholder="Повторить пароль" name="password2" autoComplete="new-password" required>
+                                </div>
+                                <button class="btn btn-primary text-center mt-3" type="submit" style="width:100%">
+                                    Регистрация
+                                </button>
+                                <p class="text-center mt-5">Уже есть аккаунт?
+                                    <a class="btn text-primary" onclick="showSignin()">Войти</a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-</div>
+    </div>
+
+    <div id="restore_password" style="display:none;" class="container-fluid">
+                <div class="rounded d-flex justify-content-center">
+                    <div class="col-md-4 col-sm-12 shadow-lg p-5 bg-light">
+                        <div class="text-center">
+                            <h3 class="text-primary">Восстановление пароля</h3>
+                        </div>
+                        <form action="/restore/" method="post" autocomplete="off">
+                            {% csrf_token %}
+                            <div class="p-4">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-person-plus-fill text-white"></i></span>
+                                    <input type="text" class="form-control" placeholder="Email" name="email" autocomplete="off">
+                                </div>
+                                <button class="btn btn-primary text-center mt-3" type="submit" style="width:100%">
+                                    Отправить email
+                                </button>
+                                <p class="text-center mt-5">
+                                    <a class="btn text-primary" onclick="showSignin()">Авторизация</a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+    </div>
 </div>

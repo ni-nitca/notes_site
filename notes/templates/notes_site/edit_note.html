@@ -1,0 +1,48 @@
+{% extends 'notes_site/base.html' %}
+
+
+{% block content %}
+
+<div style="margin-top: 5%">
+    <div id="add_note" style="display:block;" class="container-fluid">
+                <div class="rounded d-flex justify-content-center">
+                    <div class="col-md-4 col-sm-12 shadow-lg p-5 bg-light">
+                    {% if user.is_anonymous %}
+                        <div class="text-center">
+                            <h3 class="text-primary">Доступно только для авторизованного пользователя</h3>
+                        </div>
+                    {% else %}
+                        <div class="text-center">
+                            <h3 class="text-primary">Редактирование заметки</h3>
+                        </div>
+                        <form action="{% url 'note_create' %}" id="edit_note" method="post">
+                            {% csrf_token %}
+                            <div class="p-4">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-person-plus-fill text-white"></i></span>
+                                    <input type="text" class="form-control" placeholder="Заголовок" name="title" value="{{ note.title }}" required>
+                                    <input style="display:none" name="slug" value="{{ note.slug }}">
+                                </div>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-key-fill text-white"></i></span>
+                                    <textarea class="form-control" rows="5" placeholder="Описание" name="description" required>{{ note.description }}</textarea>
+                                </div>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-primary"><i
+                                            class="bi bi-person-plus-fill text-white"></i></span>
+                                    <input id="tags" type="text" class="form-control" placeholder="Тэги через запятую" name="tag" required>
+                                </div>
+                                <button class="btn btn-primary text-center mt-3" style="width:100%" type="submit">
+                                    Обновить заметку
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+{% endblock %}

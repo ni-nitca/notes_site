@@ -1,0 +1,23 @@
+{% extends 'notes_site/base.html' %}
+
+{% block content %}
+<div style="margin-top: 5%">
+    <div id="post_restore_password" class="container-fluid">
+                <div class="rounded d-flex justify-content-center">
+                    <div class="col-md-4 col-sm-12 shadow-lg p-5 bg-light">
+                        <div class="text-center">
+                            <h3 class="text-primary">Восстановление пароля</h3>
+                        </div>
+                        {% if status_code == 200 %}
+                            <p class="text-center mt-5 text-success">{{ text }}</p>
+                        {% else %}
+                            <p class="text-center mt-5 text-danger">{{ text }}</p>
+                        {% endif %}
+                        <p class="text-center mt-5">
+                        <a class="btn btn-primary" href="{% url 'home' %}">Вернуться</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+    </div>
+{% endblock %}

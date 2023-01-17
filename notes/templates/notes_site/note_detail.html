@@ -1,0 +1,29 @@
+{% extends 'notes_site/base.html' %}
+
+
+{% block content %}
+
+<div style="margin-top: 5%">
+    <div id="add_note" style="display:block;" class="container-fluid">
+                <div class="rounded d-flex justify-content-center">
+                    <div class="col-md-4 col-sm-12 shadow-lg bg-light">
+
+                <div class="single-note-item all-category">
+                <div class="card card-body">
+                    <div class="d-flex flex-row justify-content-center">
+                    </div>
+                        <span class="side-stick"></span>
+                        <h3 class="note-title text-truncate text-primary w-75" style="margin:auto">{{ note.title }}</h3>
+                        <p class="note-date text-muted mt-4">{{ note.posted_date }}</p>
+                        <div class="note-content">
+                            <p class="note-inner-content mt-4">{{ note.description }}</p>
+                        </div>
+                        <div class="d-flex flex-row">
+                            {% for tag in note.tags.all %}
+                                <p class="badge bg-primary text-center" style="margin-right:1%">{{ tag.tag }}</p>
+                            {% endfor %}
+                        </div>
+                </div>
+    </div>
+</div>
+{% endblock %}

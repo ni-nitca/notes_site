@@ -11,15 +11,32 @@
             function showSignup(){
                 const signin = document.getElementById("signin");
                 const signup = document.getElementById("signup");
+                const restore_password = document.getElementById("restore_password");
                 signin.style.display = "none";
                 signup.style.display = "block";
+                restore_password.style.display = "none";
             }
             function showSignin(){
                 const signin = document.getElementById("signin");
                 const signup = document.getElementById("signup");
+                const restore_password = document.getElementById("restore_password");
                 signin.style.display = "block";
                 signup.style.display = "none";
+                restore_password.style.display = "none";
             }
+            function showRestorePass(){
+                const signin = document.getElementById("signin");
+                const signup = document.getElementById("signup");
+                const restore_password = document.getElementById("restore_password");
+                signup.style.display = "none";
+                signin.style.display = "none";
+                restore_password.style.display = "block";
+            }
+            $(document).on('keydown', function(event) {
+              if (event.ctrlKey && event.altKey) {
+                $('#search').focus();
+              }
+            });
         </script>
     </head>
     <body>
@@ -34,11 +51,11 @@
                 {% if not user.is_anonymous %}
                       <ul class="navbar-nav me-auto" style="margin:auto">
                         <li class="nav-item">
-                          <a class="btn btn-outline-success" href="#">Добавить заметку</a>
+                            <a class="btn btn-outline-success" href="{% url 'note_create' %}">Добавить заметку</a>
                         </li>
                       </ul>
                       <div class="d-flex">
-                        <button class="btn btn-primary" type="submit">Выход</button>
+                          <a class="btn btn-primary text-light" href="{% url 'logout' %}">Выход</a>
                       </div>
                     </div>
                 {% endif %}
