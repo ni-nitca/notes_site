@@ -85,7 +85,7 @@ class ActivateView(View):
 
 class NoteCreateView(View):
     def get(self,request):
-        template_name = ''#если есть slug вернуть словарь
+        template_name = ''
         return render(request,template_name)
     def post(self,request):
         create = edit_notes(request)
@@ -95,14 +95,17 @@ class NoteCreateView(View):
 class NoteDetailView(DetailView):
     model = Note
     context_object_name = 'note'
-    #что содержит detail переставить с id в slug
+
+
 class NoteEditView(View):
     def get(self,request):
         template_name = ''
         return render(request,template_name)    
     def post(self,request):
+        template_name = ''
         create = edit_notes(request)
-        return JsonResponse(create)
+        return render(request, template_name, create)
+
 
 class NoteDeleteView(View):
     def get(self,request):
