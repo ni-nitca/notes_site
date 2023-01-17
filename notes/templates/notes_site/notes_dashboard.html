@@ -34,7 +34,7 @@
                         <a class="fa fa-trash remove-note" style="margin-left:20%" href="{{ note.get_remove_url }}"></a>
                     </div>
                         <span class="side-stick"></span>
-                        <a href="{{ note.get_absolute_url }}" class="stretched-link">
+                        <a href="{{ note.get_absolute_url }}">
                             <h5 class="note-title text-truncate w-75 mb-0">{{ note.title|truncatechars:30 }}</h5>
                         </a>
                         <p class="note-date font-12 text-muted">{{ note.posted_date }}</p>
