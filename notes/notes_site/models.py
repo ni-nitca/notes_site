@@ -51,10 +51,10 @@ class Note(models.Model):
     )
 
     def get_remove_url(self):#подумать над тем как вернуть на главную
-        return f"/note/{self.slug}"
+        return reverse("delete", kwargs={"slugify": self.slug})
 
     def get_edit_url(self):
-        return f"/note/{self.slug}"
+        return reverse("note-edit", kwargs={"slug": self.slug})
 
     def get_absolute_url(self):
         return reverse("note-create", kwargs={"slug": self.slug})
