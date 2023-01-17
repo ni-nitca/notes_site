@@ -17,7 +17,6 @@ from notes_site.check import (
 )
 from slugify import slugify
 from django.template.loader import render_to_string
-from django.contrib.auth.hashers import make_password,check_password
 from django.core.mail import send_mail
 from django.conf import settings
 from uuid import uuid4
@@ -46,10 +45,9 @@ def authorization(request):
     user = user.first()
     password = user.check_password(password)
     is_active = user.is_active
-
     if not password:
         answer = {
-            "status_code":401,
+            "status_code":402,
             "text":"Неверный логин или пароль"
         }
         return answer
@@ -265,8 +263,9 @@ def get_notes(request):
     return answer
 
 
-def edit_notes(request,user):
-    data = request
+def edit_notes(request):
+    data = request.POST
+    user = request.user
     if not check_notes(data):
         answer = {
             "status_code":400,
@@ -274,17 +273,23 @@ def edit_notes(request,user):
         }
         return answer
     
-    user = data.get("user")
     slug = data.get('slug')
     title = data.get('title')
     description = data.get('description')
     slug_hash = f"{uuid4()}"
     slug_hash = slug_hash.split('-')[0]
     tags = data.get('tags')
-    tags_list = tags.split(' ')
+    if tags:
+        tags_list = tags.split(' ')
+    else:
+        tags_list = None
 
-    if not slug:
-        slug = slugify(f"{title}/{slug_hash}")
+    if slug:
+        print(user)
+        note = Note.objects.filter(slug=slug)
+        note.first()
+        note.delete()
+        slug = slugify(title+slug_hash)
         Note.objects.create(
             user = user,
             title= title,
@@ -292,10 +297,8 @@ def edit_notes(request,user):
             slug = slug
             )
     else:
-        note = Note.objects.filter(slug=slug)
-        note.first()
-        note.delete()
-        slug = slugify(f"{title}/{slug_hash}")
+        print(user)
+        slug = slugify(title+slug_hash)
         Note.objects.create(
             user = user,
             title= title,
@@ -303,21 +306,23 @@ def edit_notes(request,user):
             slug = slug
             )
 
-    if tags_list:
-        tags = [Tags(note = note,tags = tag) for tag in tags_list]
+    if tags_list is not None:
+        note = Note.objects.filter(slug=slug)
+        note = note.first()
+        tags = [Tags( tags = note,tag = tag) for tag in tags_list]
+        print(tags)
         Tags.objects.bulk_create(tags)
 
-        answer ={
+    answer ={
             "status_code":200,
             "text": "Все прошло успешно"
         }
-    return Note.objects.filter(title=title)
+    return answer
 
 
 def delete_note(request):
     data = request.POST
     user = request.user
-
     if not check_notes(data):
         answer = {
             "status_code":400,
