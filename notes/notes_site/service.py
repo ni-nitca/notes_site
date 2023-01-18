@@ -20,6 +20,7 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.conf import settings
 from uuid import uuid4
+from django.contrib.auth import login
 
 def authorization(request):
     data = request.POST
@@ -58,12 +59,14 @@ def authorization(request):
             "text": "Аккаунт не активирован"
         }
         return answer
+    
+    login(request, user)
 
     answer = {
         "status_code":200,
         "text":"Вы успешно авторизованы"
         }
-    return user
+    return answer
 
 
 def register_save(request):
@@ -257,7 +260,7 @@ def get_notes(request):
 
     tags = data.get("tags")
     tags_list = tags.split(' ')
-    notes = notes.filter(tags__in = tags_list)
+    notes = notes.filter(tags__tag__in = tags_list)
     answer = {"notes":notes}
 
     return answer
@@ -285,7 +288,6 @@ def edit_notes(request):
         tags_list = None
 
     if slug:
-        print(user)
         note = Note.objects.filter(slug=slug)
         note.first()
         note.delete()
@@ -297,7 +299,6 @@ def edit_notes(request):
             slug = slug
             )
     else:
-        print(user)
         slug = slugify(title+slug_hash)
         Note.objects.create(
             user = user,
@@ -310,7 +311,6 @@ def edit_notes(request):
         note = Note.objects.filter(slug=slug)
         note = note.first()
         tags = [Tags( tags = note,tag = tag) for tag in tags_list]
-        print(tags)
         Tags.objects.bulk_create(tags)
 
     answer ={
@@ -348,6 +348,29 @@ def delete_note(request):
     }
     return answer
 
+
+def get_note(slug):
+    if not slug:
+        answer = {
+            "status_code":401,
+            "text":"Слаг не передан"
+        }
+        return answer
+    
+    note = Note.objects.filter(slug=slug)
+    
+    if not note.exists():
+        answer = {
+            "status_code":401,
+            "text":"Заметки не существует"
+        }
+        return answer
+    
+    note = note.first()
+    answer = {"notes":note}
+
+    return answer
+    
 
 def get_context_auth():
     authorize = Authorize.objects.get_or_create()[0]
