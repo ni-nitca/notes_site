@@ -30,7 +30,6 @@ def authorization(request):
             "text": "Неверные данные"
             }
         return answer
-        
 
     email = data.get('email')
     password = data.get('password')
@@ -52,14 +51,14 @@ def authorization(request):
             "text":"Неверный логин или пароль"
         }
         return answer
-    
+
     if not is_active:
         answer = {
             "status_code":403,
             "text": "Аккаунт не активирован"
         }
         return answer
-    
+
     login(request, user)
 
     answer = {
@@ -97,7 +96,7 @@ def register_save(request):
             "text":"Ваша почта уже используется"
         }
         return answer
-    
+
     user.email = email
     user.set_password(password)
     user.save()
@@ -212,7 +211,7 @@ def inventig_password(request):
             "text":"Неверно передан словарь"
         }
         return answer
-    
+
     hash = data.get('hash')
     user_hash = EmailHash.objects.filter(hash_text=hash)
     if not user_hash.exists():
@@ -221,7 +220,7 @@ def inventig_password(request):
             "text":"Аккаунт по hash не найден"
         }
         return answer
-    
+
     user_hash = user_hash.first()
     user = user_hash.user
 
@@ -275,7 +274,7 @@ def edit_notes(request):
             "text":"передан пустой или некорректный словарь"
         }
         return answer
-    
+
     slug = data.get('slug')
     title = data.get('title')
     description = data.get('description')
@@ -356,21 +355,21 @@ def get_note(slug):
             "text":"Слаг не передан"
         }
         return answer
-    
+
     note = Note.objects.filter(slug=slug)
-    
+
     if not note.exists():
         answer = {
             "status_code":401,
             "text":"Заметки не существует"
         }
         return answer
-    
+
     note = note.first()
     answer = {"notes":note}
 
     return answer
-    
+
 
 def get_context_auth():
     authorize = Authorize.objects.get_or_create()[0]
@@ -390,5 +389,3 @@ def get_context_reg():
         "text": description
     }
     return answer
-
-
