@@ -51,13 +51,13 @@ class Note(models.Model):
     )
 
     def get_remove_url(self):#подумать над тем как вернуть на главную
-        return reverse("delete", kwargs={"slugify": self.slug})
+        return reverse("delete", kwargs={"slug": self.slug})
 
     def get_edit_url(self):
-        return reverse("note-edit", kwargs={"slug": self.slug})
+        return reverse("note_edit", kwargs={"slug": self.slug})
 
     def get_absolute_url(self):
-        return reverse("note-create", kwargs={"slug": self.slug})
+        return reverse("note_detail", kwargs={"slug": self.slug})
 
     def __str__(self):
         return str(self.title)
@@ -73,6 +73,7 @@ class Tags(models.Model):
         Note,
         verbose_name="Заметка",
         on_delete=models.CASCADE,
+        related_name="tags"
     )
     tag = models.CharField(
         verbose_name="Тег",
