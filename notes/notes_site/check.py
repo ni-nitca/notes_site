@@ -61,7 +61,6 @@ def check_notes(data:dict):
 
     values = data.keys()
     true_list = [
-        "slug",
         "title",
         "description",
         "tags"
