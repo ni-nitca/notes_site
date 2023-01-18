@@ -23,8 +23,8 @@ urlpatterns = [
     path('restore/', RestorePassword.as_view(), name = 'restore'),
     path('inventing/', InventingPassword.as_view(), name = 'invent'),
     path('activate/<str:hash>', ActivateView.as_view(), name = 'activate'),
-    path('note/<slug:slug>',NoteDetailView.as_view(),name = 'note-detail'),
-    path('note/new', NoteCreateView.as_view(), name = 'note-create'),
-    path('note/edit/<str:slug>', NoteEditView.as_view(), name="npte-edit"),
-    path('note/<str:slugify>/delete',NoteDeleteView.as_view(),name = 'delete'),
+    path('note/detail/<str:slug>',NoteDetailView.as_view(),name = 'note_detail'),
+    path('note/new', NoteCreateView.as_view(), name = 'note_create'),
+    path('note/edit/<str:slug>', NoteEditView.as_view(), name="note_edit"),
+    path('note/<str:slug>/delete',NoteDeleteView.as_view(),name = 'delete'),
 ]
