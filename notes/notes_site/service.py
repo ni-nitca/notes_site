@@ -116,22 +116,15 @@ def email_send(email, hash, repeat = False):#
     mail_obj = MailSettings.objects.get_or_create(pk=1)[0]
     current_site = mail_obj.domen
     mail_subject = mail_obj.title
-    description = mail_obj.description
 
-    template_name = "notes_site/acc_active_email.html"
     link = f"http://{current_site}/activate/{hash}"
-    message = render_to_string(template_name, {
-        'link': link,
-        'token': hash,
-        'description':description,
-    })
+    message = link
 
     send_mail(
         mail_subject,
         message,
         settings.EMAIL_HOST_USER,
         [to_email],
-        html_message = message
     )
     if not repeat:
         return 'Пожалуйста проверьте вашу почту для завершения регистрации'
@@ -366,7 +359,7 @@ def get_note(slug):
         return answer
 
     note = note.first()
-    answer = {"notes":note}
+    answer = {"note":note}
 
     return answer
 
